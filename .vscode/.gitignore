@@ -1,0 +1,6 @@
+myenv/
+__pycache__/
+.env
+Embeddings/
+Uploads/
+*.pyc
