@@ -21,7 +21,7 @@ def load_faiss_embeddings_file(
         )
 
     embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/embedding-001",
+        model="models/text-embedding-004",
         google_api_key=settings.google_api_key,
     )
 

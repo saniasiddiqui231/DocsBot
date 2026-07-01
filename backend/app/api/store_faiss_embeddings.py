@@ -43,7 +43,7 @@ def save_faiss_embeddings_file(
 
     else:
         raise ValueError(f"Unsupported file type: {filename}")
-
+    print("Loading document...")
     documents = loader.load()
 
     print("2. Splitting document...")
@@ -61,7 +61,7 @@ def save_faiss_embeddings_file(
     print("3. Creating Google embeddings...")
 
     embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/embedding-001",
+        model="models/text-embedding-004",
         google_api_key=settings.google_api_key,
     )
 
