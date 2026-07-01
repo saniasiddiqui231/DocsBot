@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from .chatbot import Chatbot
 from .load_faiss_embeddings import load_faiss_embeddings_file
+from .store_faiss_embeddings import save_faiss_embeddings_file
 
 from app.config import get_settings
 
@@ -18,8 +19,33 @@ embeddings_folder_path = os.path.join(
     Path(__file__).parent.parent,
     "Embeddings",
 )
+upload_folder_path = os.path.join(
+    Path(__file__).parent.parent,
+    "Uploads",
+)
+
+os.makedirs(embeddings_folder_path, exist_ok=True)
+os.makedirs(upload_folder_path, exist_ok=True)
 
 session_id_temp = None
+
+
+def _resolve_uploaded_file(file_path: str) -> str | None:
+    candidate_paths = []
+    raw_path = Path(file_path)
+
+    if raw_path.is_absolute():
+        candidate_paths.append(raw_path)
+    else:
+        candidate_paths.append(raw_path)
+        candidate_paths.append(Path(upload_folder_path) / raw_path.name)
+        candidate_paths.append(Path(upload_folder_path) / raw_path.stem)
+
+    for candidate in candidate_paths:
+        if candidate.exists() and candidate.is_file():
+            return str(candidate)
+
+    return None
 
 
 def get_chatbot_for_user_selected_file(file_path: str):
@@ -27,9 +53,27 @@ def get_chatbot_for_user_selected_file(file_path: str):
     filename = Path(file_path).stem
 
     embeddings_path = os.path.join(
-    embeddings_folder_path,
-    filename,
-)
+        embeddings_folder_path,
+        filename,
+    )
+
+    resolved_file_path = _resolve_uploaded_file(file_path)
+
+    if not os.path.exists(embeddings_path):
+        if resolved_file_path is None:
+            raise FileNotFoundError(
+                f"Uploaded file not found and embeddings folder is missing: {file_path}"
+            )
+
+        save_faiss_embeddings_file(
+            file_path=resolved_file_path,
+            embeddings_folder_path=embeddings_folder_path,
+        )
+
+    if not os.path.exists(embeddings_path):
+        raise FileNotFoundError(
+            f"Embedding folder not found after regeneration: {embeddings_path}"
+        )
 
     db = load_faiss_embeddings_file(
         embeddings_path=embeddings_path
