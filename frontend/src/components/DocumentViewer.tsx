@@ -10,8 +10,6 @@ import {
   Th,
   Td,
   Text,
-  Flex,
-  IconButton,
 } from "@chakra-ui/react";
 import API_BASE_URL from "../config";
 

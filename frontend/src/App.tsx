@@ -27,7 +27,7 @@ export default function App() {
 
   const [uploadResult, setUploadResult] = useState("");
 
-  const [sessionId, setSessionId] = useState("");
+  const [, setSessionId] = useState("");
 
   const handleQuestionChange = (
     e: React.ChangeEvent<HTMLInputElement>
