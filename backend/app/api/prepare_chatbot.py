@@ -28,6 +28,7 @@ os.makedirs(embeddings_folder_path, exist_ok=True)
 os.makedirs(upload_folder_path, exist_ok=True)
 
 session_id_temp = None
+latest_uploaded_filepath = None
 
 
 def _resolve_uploaded_file(file_path: str) -> str | None:
@@ -96,7 +97,7 @@ async def prepare_chatbot_over_subset(
     uploaded_filepath: str,
 ):
 
-    global session_id_temp
+    global session_id_temp, latest_uploaded_filepath
 
     if not uploaded_filepath:
         raise HTTPException(
@@ -104,9 +105,17 @@ async def prepare_chatbot_over_subset(
             detail="Please upload a file first.",
         )
 
-    chatbot, session_id = get_chatbot_for_user_selected_file(
-        uploaded_filepath
-    )
+    latest_uploaded_filepath = uploaded_filepath
+
+    try:
+        chatbot, session_id = get_chatbot_for_user_selected_file(
+            uploaded_filepath
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=str(exc),
+        ) from exc
 
     chatbot_router.chatbot = chatbot
     session_id_temp = session_id
@@ -127,10 +136,32 @@ class Response(BaseModel):
 )
 async def chat_with_bot(query: str):
 
+    global session_id_temp
+
     if not hasattr(chatbot_router, "chatbot"):
+        if latest_uploaded_filepath:
+            try:
+                chatbot, session_id = get_chatbot_for_user_selected_file(
+                    latest_uploaded_filepath
+                )
+            except Exception as exc:
+                raise HTTPException(
+                    status_code=503,
+                    detail=f"Chatbot could not be prepared: {exc}",
+                ) from exc
+
+            chatbot_router.chatbot = chatbot
+            session_id_temp = session_id
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Prepare chatbot first.",
+            )
+
+    if not query or not query.strip():
         raise HTTPException(
             status_code=400,
-            detail="Prepare chatbot first.",
+            detail="Please provide a query.",
         )
 
     conversation_id = str(uuid.uuid4())
