@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.api.upload_file import upload_router
+from app.api.upload_file import UPLOAD_DIR, upload_router
 from app.api.prepare_chatbot import chatbot_router
 
 
@@ -24,12 +24,13 @@ def create_application() -> FastAPI:
     )
 
     UPLOAD_DIR = Path(__file__).parent / "Uploads"
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
     app.mount(
-        "/uploads",
-        StaticFiles(directory=UPLOAD_DIR),
-        name="uploads",
-    )
+    "/uploads",
+    StaticFiles(directory=UPLOAD_DIR),
+    name="uploads",
+)
 
     app.include_router(upload_router, tags=["Upload"])
     app.include_router(chatbot_router, tags=["Chatbot"])
