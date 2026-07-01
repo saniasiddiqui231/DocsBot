@@ -60,9 +60,14 @@ def save_faiss_embeddings_file(
 
     print("3. Creating Google embeddings...")
 
-    embeddings = HuggingFaceEmbeddings(
-        model_name=settings.embedding_model,
-    )
+    try:
+        embeddings = HuggingFaceEmbeddings(
+            model_name=settings.embedding_model,
+        )
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to initialize embeddings model '{settings.embedding_model}': {exc}"
+        ) from exc
 
     print("4. Building FAISS index...")
 

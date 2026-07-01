@@ -4,8 +4,9 @@ from pathlib import Path
 
 print("2. Imported pathlib")
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 print("3. Imported FastAPI")
@@ -32,14 +33,14 @@ def create_application() -> FastAPI:
         allow_headers=["*"],
     )
 
-    UPLOAD_DIR = Path(__file__).parent / "Uploads"
+    UPLOAD_DIR = (Path(__file__).resolve().parent / "Uploads").resolve()
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
     app.mount(
-    "/uploads",
-    StaticFiles(directory=UPLOAD_DIR),
-    name="uploads",
-)
+        "/uploads",
+        StaticFiles(directory=str(UPLOAD_DIR)),
+        name="uploads",
+    )
 
     app.include_router(upload_router, tags=["Upload"])
     app.include_router(chatbot_router, tags=["Chatbot"])
@@ -51,6 +52,18 @@ def create_application() -> FastAPI:
     @app.get("/health")
     async def health():
         return {"status": "healthy"}
+
+    @app.get("/uploads/{filename}")
+    async def get_uploaded_file(filename: str):
+        file_path = (UPLOAD_DIR / filename).resolve()
+
+        if not file_path.exists() or not file_path.is_file():
+            raise HTTPException(status_code=404, detail="File not found")
+
+        if UPLOAD_DIR not in file_path.parents:
+            raise HTTPException(status_code=403, detail="Access denied")
+
+        return FileResponse(file_path)
 
     return app
 

@@ -66,10 +66,14 @@ export default function DocumentViewer({
   const extension = file.name.split(".").pop()?.toLowerCase();
 
   if (extension === "pdf") {
+    const previewUrl = API_BASE_URL
+      ? `${API_BASE_URL}/uploads/${encodeURIComponent(file.name)}`
+      : `/uploads/${encodeURIComponent(file.name)}`;
+
     return (
       <iframe
         title="PDF Viewer"
-        src={`${API_BASE_URL}/uploads/${file.name}`}
+        src={previewUrl}
         width="100%"
         height="100%"
         style={{
