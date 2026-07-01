@@ -47,22 +47,25 @@ async def upload_file_create_embeddings(file: UploadFile):
 
     file_path = UPLOAD_DIR / file.filename
 
-    if not file_path.exists():
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
 
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-
+    try:
         save_faiss_embeddings_file(
             file_path=str(file_path),
             embeddings_folder_path=str(EMBEDDINGS_DIR),
         )
 
-        return {
-            "filename": file.filename,
-            "status": "Embeddings created successfully.",
-        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e),
+        )
 
     return {
         "filename": file.filename,
-        "status": "File already exists.",
+        "status": "Embeddings created successfully.",
     }
