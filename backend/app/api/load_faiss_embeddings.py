@@ -1,7 +1,7 @@
 import os
 
 from langchain_community.vectorstores import FAISS
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 
 from app.config import get_settings
 
@@ -20,9 +20,8 @@ def load_faiss_embeddings_file(
             f"Embedding folder not found: {embeddings_path}"
         )
 
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/text-embedding-004",
-        google_api_key=settings.google_api_key,
+    embeddings = HuggingFaceEmbeddings(
+        model_name=settings.embedding_model,
     )
 
     db = FAISS.load_local(

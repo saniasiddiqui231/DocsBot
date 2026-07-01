@@ -8,8 +8,8 @@ from langchain_community.document_loaders import (
 )
 
 from langchain_community.vectorstores import FAISS
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 from app.config import get_settings
 
@@ -60,9 +60,8 @@ def save_faiss_embeddings_file(
 
     print("3. Creating Google embeddings...")
 
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/text-embedding-004",
-        google_api_key=settings.google_api_key,
+    embeddings = HuggingFaceEmbeddings(
+        model_name=settings.embedding_model,
     )
 
     print("4. Building FAISS index...")
