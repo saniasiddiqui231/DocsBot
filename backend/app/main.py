@@ -1,11 +1,20 @@
+print("1. Starting main.py")
+
 from pathlib import Path
+
+print("2. Imported pathlib")
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.api.upload_file import UPLOAD_DIR, upload_router
+print("3. Imported FastAPI")
+
+from app.api.upload_file import upload_router
+print("4. Imported upload_router")
+
 from app.api.prepare_chatbot import chatbot_router
+print("5. Imported chatbot_router")
 
 
 def create_application() -> FastAPI:
