@@ -1,5 +1,4 @@
 import os
-import pickle
 
 from langchain_community.document_loaders import (
     PyPDFLoader,
@@ -7,10 +6,10 @@ from langchain_community.document_loaders import (
     TextLoader,
     CSVLoader,
 )
- 
+
 from langchain_community.vectorstores import FAISS
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 from app.config import get_settings
 
@@ -27,6 +26,8 @@ def save_faiss_embeddings_file(
     """
 
     filename = os.path.basename(file_path)
+
+    print("1. Loading document...")
 
     if filename.endswith(".pdf"):
         loader = PyPDFLoader(file_path)
@@ -45,6 +46,8 @@ def save_faiss_embeddings_file(
 
     documents = loader.load()
 
+    print("2. Splitting document...")
+
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=200,
@@ -55,11 +58,14 @@ def save_faiss_embeddings_file(
     else:
         chunks = splitter.split_documents(documents)
 
-    embeddings = HuggingFaceEmbeddings(
-        model_name=settings.embedding_model,
-        model_kwargs={"device": "cpu"},
-        encode_kwargs={"normalize_embeddings": True},
+    print("3. Creating Google embeddings...")
+
+    embeddings = GoogleGenerativeAIEmbeddings(
+        model="models/embedding-001",
+        google_api_key=settings.google_api_key,
     )
+
+    print("4. Building FAISS index...")
 
     db = FAISS.from_documents(
         documents=chunks,
@@ -69,10 +75,14 @@ def save_faiss_embeddings_file(
     save_name = os.path.splitext(filename)[0]
 
     save_path = os.path.join(
-    embeddings_folder_path,
-    save_name,
-)
+        embeddings_folder_path,
+        save_name,
+    )
 
     os.makedirs(save_path, exist_ok=True)
 
+    print("5. Saving FAISS...")
+
     db.save_local(save_path)
+
+    print("DONE")
